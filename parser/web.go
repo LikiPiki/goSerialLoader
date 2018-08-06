@@ -2,23 +2,12 @@ package parser
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+
+	"github.com/likipiki/goSerialLoader/db"
 )
-
-func Parse(file string) error {
-	var rss Rss
-	err := xml.Unmarshal([]byte(file), &rss)
-	if err != nil {
-		return err
-	}
-	fmt.Println(rss.Channel.Items[0].Title)
-	fmt.Println(rss.Channel.Items[1].Title)
-	fmt.Println(rss.Channel.Items[2].Title)
-
-	return nil
-}
 
 type Rss struct {
 	XMLName xml.Name `xml:"rss"`
@@ -41,6 +30,50 @@ type Item struct {
 	Category string   `xml:"category"`
 	PubDate  string   `xml:"pubDate"`
 	Link     string   `xml:"link"`
+}
+
+type Serial struct {
+	db.Serial
+	Resolutions []Resolution
+}
+
+type Resolution struct {
+	Format string
+	Link   string
+}
+
+func Parse(file string) ([]Serial, error) {
+	var rss Rss
+	err := xml.Unmarshal([]byte(file), &rss)
+	if err != nil {
+		return nil, err
+	}
+	var serials []Serial
+	for i := 0; i < 5; i++ {
+		rSerial := regexp.MustCompile(`(S\d\dE\d\d)`)
+		rTitle := regexp.MustCompile(`(\((.*)\). )`)
+
+		title := rss.Channel.Items[i*3].Title
+		serialDb := db.Serial{
+			Name:       rTitle.FindStringSubmatch(title)[2],
+			SeasonData: rSerial.FindStringSubmatch(title)[0],
+		}
+
+		var resolutions []Resolution
+		rResolution := regexp.MustCompile(`\[(\w+)\]`)
+		for j := 0; j < 3; j++ {
+			current := rss.Channel.Items[i*3+j]
+			resolutions = append(resolutions, Resolution{
+				rResolution.FindStringSubmatch(current.Category)[1],
+				current.Link,
+			})
+		}
+
+		serials = append(serials, Serial{
+			serialDb, resolutions,
+		})
+	}
+	return serials, nil
 }
 
 func Download(url string) (string, error) {

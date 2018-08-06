@@ -1,19 +1,22 @@
 package main
 
 import (
-	"./parser"
+	"fmt"
+
+	"github.com/likipiki/goSerialLoader/parser"
 )
 
 func main() {
-	// err := Parse(download("http://retre.org/rssdd.xml"))
 	str, err := parser.Download("http://retre.org/rssdd.xml")
 	if err != nil {
 		panic(err)
 	}
-
-	err = parser.Parse(str)
+	var serials []parser.Serial
+	serials, err = parser.Parse(str)
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Printf("%+v", serials[0])
 
 }
