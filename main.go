@@ -2,8 +2,13 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 
+	// "./db"
+	// "./downloader"
+	// "./parser"
 	"github.com/likipiki/goSerialLoader/db"
+	"github.com/likipiki/goSerialLoader/downloader"
 	"github.com/likipiki/goSerialLoader/parser"
 )
 
@@ -27,18 +32,18 @@ func main() {
 	DB = db.Connect()
 	defer DB.Close()
 
-	serials, err := parseSerials()
+	_, err := parseSerials()
 	if err != nil {
 		panic(err)
 	}
-	serialsToDownload, err := checkSerials(serials)
-	if err != nil {
-		panic(err)
-	}
-	err = downloadSerials(serialsToDownload, uid, usess)
-	if err != nil {
-		panic(err)
-	}
+	// serialsToDownload, err := checkSerials(serials)
+	// if err != nil {
+	// 	panic(err)
+	// }
+	// err = downloadSerials(serialsToDownload, uid, usess)
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
 
 func parseSerials() ([]parser.Serial, error) {
@@ -46,6 +51,7 @@ func parseSerials() ([]parser.Serial, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(file)
 	serials, err := parser.Parse(file)
 	if err != nil {
 		return nil, err
