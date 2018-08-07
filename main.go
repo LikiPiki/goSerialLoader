@@ -2,41 +2,99 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/likipiki/goSerialLoader/db"
 	"github.com/likipiki/goSerialLoader/parser"
 )
 
 var (
-	DB *sql.DB
+	DB    *sql.DB
+	path  = "" // /Users/ilja/Downloads/
+	uid   = ""
+	usess = ""
 )
 
 const (
 	LINK = "http://retre.org/rssdd.xml"
 )
 
+type SerialToDownload struct {
+	Link     string
+	FileName string
+}
+
 func main() {
 	DB = db.Connect()
 	defer DB.Close()
 
-	one, two, err := db.SerialDB{
-		Serial: db.Serial{
-			Name: "kek",
-		},
-	}.Get()
+	serials, err := parseSerials()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(one, two)
+	serialsToDownload, err := checkSerials(serials)
+	if err != nil {
+		panic(err)
+	}
+	err = downloadSerials(serialsToDownload, uid, usess)
+	if err != nil {
+		panic(err)
+	}
+}
 
+func parseSerials() ([]parser.Serial, error) {
 	file, err := parser.Download(LINK)
 	if err != nil {
-		return
+		return nil, err
 	}
 	serials, err := parser.Parse(file)
 	if err != nil {
-		return
+		return nil, err
 	}
-	fmt.Println(serials)
+	return serials, nil
+}
+
+func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
+	// fileName contains resolution (SirenaS01E01.torrent)
+	var serialsToDownload []SerialToDownload
+
+	for _, serial := range serials {
+
+		oldSeason, oldEpisode, err := serial.Get()
+		if err != nil {
+			return nil, err
+		}
+
+		if serial.Serial.Season > oldSeason || serial.Serial.Episode > oldEpisode {
+
+			err := serial.Put()
+			if err != nil {
+				return nil, err
+			}
+
+			serialsToDownload = append(
+				serialsToDownload,
+				SerialToDownload{
+					Link:     serial.Resolutions[0].Link, // check resolution !!!!
+					FileName: serial.Serial.Name + " " + serial.SeasonData + ".torrent",
+				},
+			)
+
+		}
+
+	}
+	return serialsToDownload, nil
+}
+
+func downloadSerials(serials []SerialToDownload, uid, usess string) error {
+	downloader := downloader.Downloader{
+		Uid:   uid,
+		Usess: usess,
+	}
+	for _, serial := range serials {
+		err := downloader.DownloadTorrentFile(serial.Link, path+serial.FileName)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
