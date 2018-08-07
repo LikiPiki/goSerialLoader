@@ -11,7 +11,7 @@ type Downloader struct {
 	Usess string
 }
 
-func (downloader *Downloader) DownloadTorrentFile(link string, filepath string) error {
+func (downloader Downloader) DownloadTorrentFile(link string, filepath string) error {
 	out, err := os.Create(filepath)
 	if err != nil {
 		return err

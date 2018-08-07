@@ -1,9 +1,15 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 
+	"github.com/likipiki/goSerialLoader/db"
 	"github.com/likipiki/goSerialLoader/parser"
+)
+
+var (
+	DB *sql.DB
 )
 
 const (
@@ -11,6 +17,19 @@ const (
 )
 
 func main() {
+	DB = db.Connect()
+	defer DB.Close()
+
+	one, two, err := db.SerialDB{
+		Serial: db.Serial{
+			Name: "kek",
+		},
+	}.Get()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(one, two)
+
 	file, err := parser.Download(LINK)
 	if err != nil {
 		return
