@@ -2,8 +2,11 @@ package parser
 
 import (
 	"encoding/xml"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 
 	"github.com/likipiki/goSerialLoader/db"
@@ -87,4 +90,33 @@ func Download(url string) (string, error) {
 		return "", err
 	}
 	return string(body), nil
+}
+
+func DownloadTorrentFile(link string, filepath string, uid string, usess string) error {
+	out, err := os.Create(filepath)
+	if err != nil {
+		return err
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", link, nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Cookie", "uid="+uid+";usess="+usess)
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Println(resp.StatusCode)
+	var body []byte
+	body, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	fmt.Println(string(body))
+	return nil
 }

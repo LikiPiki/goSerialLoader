@@ -1,8 +1,6 @@
 package main
 
 import (
-	"fmt"
-
 	"github.com/likipiki/goSerialLoader/parser"
 )
 
@@ -16,7 +14,12 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
-	fmt.Printf("%+v", serials[0])
-
+	err = parser.DownloadTorrentFile(
+		serials[0].Resolutions[2].Link,
+		"path to downloads"+serials[0].Serial.Name+serials[0].Serial.SeasonData+".torrent",
+		"uid",
+		"usess")
+	if err != nil {
+		panic(err)
+	}
 }
