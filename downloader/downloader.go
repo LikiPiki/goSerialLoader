@@ -1,16 +1,14 @@
 package downloader
 
 import (
-	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"os"
 )
 
 type Downloader struct {
-    Uid string
-    Usess string
+	Uid   string
+	Usess string
 }
 
 func (downloader *Downloader) DownloadTorrentFile(link string, filepath string) error {
@@ -32,12 +30,5 @@ func (downloader *Downloader) DownloadTorrentFile(link string, filepath string) 
 	if err != nil {
 		return err
 	}
-	fmt.Println(resp.StatusCode)
-	var body []byte
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(body))
 	return nil
 }

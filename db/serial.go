@@ -1,6 +1,12 @@
 package db
 
+type SerialDB struct {
+	Serial
+	ID uint
+}
+
 type Serial struct {
-	Name       string
-	SeasonData string
+	Name    string
+	Season  int
+	Episode int
 }
