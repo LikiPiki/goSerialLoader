@@ -2,12 +2,10 @@ package parser
 
 import (
 	"encoding/xml"
-	"fmt"
-	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"regexp"
+	"strconv"
 
 	"github.com/likipiki/goSerialLoader/db"
 )
@@ -37,6 +35,7 @@ type Item struct {
 
 type Serial struct {
 	db.Serial
+	SeasonData  string
 	Resolutions []Resolution
 }
 
@@ -55,11 +54,23 @@ func Parse(file string) ([]Serial, error) {
 	for i := 0; i < 5; i++ {
 		rSerial := regexp.MustCompile(`(S\d\dE\d\d)`)
 		rTitle := regexp.MustCompile(`(\((.*)\). )`)
+		rSeason := regexp.MustCompile(`(S([0-9][0-9]))`)
+		rEpisode := regexp.MustCompile(`(E([0-9][0-9]))`)
 
 		title := rss.Channel.Items[i*3].Title
+		seasonData := rSerial.FindStringSubmatch(title)[0]
+		season, err := strconv.Atoi(rSeason.FindStringSubmatch(seasonData)[2])
+		if err != nil {
+			return nil, err
+		}
+		episode, err := strconv.Atoi(rEpisode.FindStringSubmatch(seasonData)[2])
+		if err != nil {
+			return nil, err
+		}
 		serialDb := db.Serial{
-			Name:       rTitle.FindStringSubmatch(title)[2],
-			SeasonData: rSerial.FindStringSubmatch(title)[0],
+			Name:    rTitle.FindStringSubmatch(title)[2],
+			Season:  season,
+			Episode: episode,
 		}
 
 		var resolutions []Resolution
@@ -73,7 +84,7 @@ func Parse(file string) ([]Serial, error) {
 		}
 
 		serials = append(serials, Serial{
-			serialDb, resolutions,
+			serialDb, seasonData, resolutions,
 		})
 	}
 	return serials, nil
@@ -90,33 +101,4 @@ func Download(url string) (string, error) {
 		return "", err
 	}
 	return string(body), nil
-}
-
-func DownloadTorrentFile(link string, filepath string, uid string, usess string) error {
-	out, err := os.Create(filepath)
-	if err != nil {
-		return err
-	}
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", link, nil)
-	if err != nil {
-		return err
-	}
-	req.Header.Add("Cookie", "uid="+uid+";usess="+usess)
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	_, err = io.Copy(out, resp.Body)
-	if err != nil {
-		return err
-	}
-	fmt.Println(resp.StatusCode)
-	var body []byte
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return err
-	}
-	fmt.Println(string(body))
-	return nil
 }
