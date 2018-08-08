@@ -82,7 +82,7 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 				return nil, err
 			}
 
-			resolutionInt, err := getIntResolution(resolution)
+			resolitionInt, err := getIntResolution(resolution)
 			if err != nil {
 				return nil, err
 			}
@@ -90,7 +90,7 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 			serialsToDownload = append(
 				serialsToDownload,
 				SerialToDownload{
-					Link:     serial.Resolutions[resolutionInt].Link,
+					Link:     serial.Resolutions[resolitionInt].Link,
 					FileName: serial.Serial.Name + " " + serial.SeasonData + ".torrent",
 				},
 			)
@@ -110,8 +110,7 @@ func getIntResolution(resolution string) (int, error) {
 	case "SD":
 		return 2, nil
 	}
-	err := errors.New("resolution not \"SD\", \"1080p\", \"MP4\"")
-	return -1, err
+	return -1, errors.New("resolution not \"SD\", \"1080p\", \"MP4\"")
 }
 
 func downloadSerials(serials []SerialToDownload, uid, usess, filepath string) error {
