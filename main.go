@@ -14,10 +14,10 @@ import (
 
 var (
 	DB       *sql.DB
-	pathTest = "./testFiles/" // test directory
+	pathTest = "./" // test directory
 	path     = ""
-	uid      = "5972916"
-	usess    = "74a1217e8a3a5d304d47353cb9db7d57"
+	uid      = ""
+	usess    = ""
 )
 
 const (
