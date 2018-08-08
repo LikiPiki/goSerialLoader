@@ -3,13 +3,11 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 
-	"./db"
-	"./downloader"
-	"./parser"
-	// "github.com/likipiki/goSerialLoader/db"
-	// "github.com/likipiki/goSerialLoader/downloader"
-	// "github.com/likipiki/goSerialLoader/parser"
+	"github.com/likipiki/goSerialLoader/db"
+	"github.com/likipiki/goSerialLoader/downloader"
+	"github.com/likipiki/goSerialLoader/parser"
 )
 
 var (
@@ -65,24 +63,23 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 
 	for _, serial := range serials {
 
-		oldSeason, oldEpisode, err := serial.Get()
+		oldSerial, err := serial.Get()
 		if err != nil {
 			return nil, err
 		}
+		fmt.Println("serial is", oldSerial, db.Serial{})
+		if oldSerial == (db.Serial{}) {
+			continue
+		}
 
-		if serial.Serial.Season > oldSeason || serial.Serial.Episode > oldEpisode {
+		if serial.Serial.Season > oldSerial.Season || serial.Serial.Episode > oldSerial.Episode {
 
-			err := serial.Set()
+			err := serial.UpdateSeasonEpisode()
 			if err != nil {
 				return nil, err
 			}
 
-			resolution, err := serial.GetResolution()
-			if err != nil {
-				return nil, err
-			}
-
-			resolitionInt, err := getIntResolution(resolution)
+			resolitionInt, err := getIntResolution(oldSerial.Resolution)
 			if err != nil {
 				return nil, err
 			}

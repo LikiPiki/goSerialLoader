@@ -7,8 +7,7 @@ import (
 	"regexp"
 	"strconv"
 
-	"../db"
-	// "github.com/likipiki/goSerialLoader/db"
+	"github.com/likipiki/goSerialLoader/db"
 )
 
 type Rss struct {
