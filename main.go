@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"errors"
 
 	"./db"
 	"./downloader"
@@ -13,10 +13,11 @@ import (
 )
 
 var (
-	DB    *sql.DB
-	path  = "" // /Users/ilja/Downloads/
-	uid   = ""
-	usess = ""
+	DB       *sql.DB
+	pathTest = "./testFiles/" // test directory
+	path     = ""
+	uid      = "5972916"
+	usess    = "74a1217e8a3a5d304d47353cb9db7d57"
 )
 
 const (
@@ -40,7 +41,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	err = downloadSerials(serialsToDownload, uid, usess)
+	err = downloadSerials(serialsToDownload, uid, usess, path)
 	if err != nil {
 		panic(err)
 	}
@@ -51,7 +52,6 @@ func parseSerials() ([]parser.Serial, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(file)
 	serials, err := parser.Parse(file)
 	if err != nil {
 		return nil, err
@@ -82,21 +82,15 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 				return nil, err
 			}
 
-			var resulitionInt int
-
-			switch resolution {
-			case "MP4":
-				resulitionInt = 0
-			case "1080p":
-				resulitionInt = 1
-			case "SD":
-				resulitionInt = 2
+			resolutionInt, err := getIntResolution(resolution)
+			if err != nil {
+				return nil, err
 			}
 
 			serialsToDownload = append(
 				serialsToDownload,
 				SerialToDownload{
-					Link:     serial.Resolutions[resulitionInt].Link,
+					Link:     serial.Resolutions[resolutionInt].Link,
 					FileName: serial.Serial.Name + " " + serial.SeasonData + ".torrent",
 				},
 			)
@@ -107,13 +101,27 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 	return serialsToDownload, nil
 }
 
-func downloadSerials(serials []SerialToDownload, uid, usess string) error {
+func getIntResolution(resolution string) (int, error) {
+	switch resolution {
+	case "MP4":
+		return 0, nil
+	case "1080p":
+		return 1, nil
+	case "SD":
+		return 2, nil
+	}
+	err := errors.New("resolution not \"SD\", \"1080p\", \"MP4\"")
+	return -1, err
+}
+
+func downloadSerials(serials []SerialToDownload, uid, usess, filepath string) error {
 	downloader := downloader.Downloader{
-		Uid:   uid,
-		Usess: usess,
+		Uid:      uid,
+		Usess:    usess,
+		Filepath: filepath,
 	}
 	for _, serial := range serials {
-		err := downloader.DownloadTorrentFile(serial.Link, path+serial.FileName)
+		err := downloader.DownloadTorrentFile(serial.Link, serial.FileName)
 		if err != nil {
 			return err
 		}

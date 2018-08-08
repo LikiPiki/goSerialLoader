@@ -7,12 +7,13 @@ import (
 )
 
 type Downloader struct {
-	Uid   string
-	Usess string
+	Uid      string
+	Usess    string
+	Filepath string
 }
 
-func (downloader Downloader) DownloadTorrentFile(link string, filepath string) error {
-	out, err := os.Create(filepath)
+func (downloader Downloader) DownloadTorrentFile(link string, name string) error {
+	out, err := os.Create(downloader.Filepath + name)
 	if err != nil {
 		return err
 	}
