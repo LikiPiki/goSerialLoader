@@ -10,14 +10,16 @@ import (
 	"github.com/likipiki/goSerialLoader/parser"
 )
 
+// main BD
 var (
 	DB       *sql.DB
-	pathTest = "./" // test directory
-	path     = ""
-	uid      = ""
-	usess    = ""
+	pathTest = "./testsFiles/"            // test directory
+	path     = "/Users/sergey/Downloads/" // example
+	uid      = "5972916"
+	usess    = "74a1217e8a3a5d304d47353cb9db7d57"
 )
 
+// link to lostfilm rss
 const (
 	LINK = "http://retre.org/rssdd.xml"
 )
@@ -62,7 +64,7 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 	var serialsToDownload []SerialToDownload
 
 	for _, serial := range serials {
-
+		fmt.Println("serial is ", serial)
 		oldSerial, err := serial.Get()
 		if err != nil {
 			return nil, err

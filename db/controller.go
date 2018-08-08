@@ -21,7 +21,7 @@ func (s Serial) Save() error {
 
 func (s Serial) Get() (Serial, error) {
 	err := DB.QueryRow(
-		"SELECT (season, episode, resolution) FROM serials WHERE name = $1",
+		"SELECT season, episode, resolution FROM serials WHERE name = $1",
 		s.Name,
 	).Scan(
 		&s.Season,
@@ -40,7 +40,7 @@ func (s Serial) Get() (Serial, error) {
 
 func (s Serial) UpdateSeasonEpisode() error {
 	_, err := DB.Exec(
-		"UPDATE serials SET (season =  $1, episode = $2) WHERE name = $3",
+		"UPDATE serials SET season =  $1, episode = $2 WHERE name = $3",
 		s.Season, s.Episode, s.Name,
 	)
 	if err != nil {
