@@ -4,12 +4,12 @@ import (
 	"database/sql"
 	"fmt"
 
-	// "./db"
-	// "./downloader"
-	// "./parser"
-	"github.com/likipiki/goSerialLoader/db"
-	"github.com/likipiki/goSerialLoader/downloader"
-	"github.com/likipiki/goSerialLoader/parser"
+	"./db"
+	"./downloader"
+	"./parser"
+	// "github.com/likipiki/goSerialLoader/db"
+	// "github.com/likipiki/goSerialLoader/downloader"
+	// "github.com/likipiki/goSerialLoader/parser"
 )
 
 var (
@@ -32,18 +32,18 @@ func main() {
 	DB = db.Connect()
 	defer DB.Close()
 
-	_, err := parseSerials()
+	serials, err := parseSerials()
 	if err != nil {
 		panic(err)
 	}
-	// serialsToDownload, err := checkSerials(serials)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// err = downloadSerials(serialsToDownload, uid, usess)
-	// if err != nil {
-	// 	panic(err)
-	// }
+	serialsToDownload, err := checkSerials(serials)
+	if err != nil {
+		panic(err)
+	}
+	err = downloadSerials(serialsToDownload, uid, usess)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func parseSerials() ([]parser.Serial, error) {
@@ -72,15 +72,31 @@ func checkSerials(serials []parser.Serial) ([]SerialToDownload, error) {
 
 		if serial.Serial.Season > oldSeason || serial.Serial.Episode > oldEpisode {
 
-			err := serial.Put()
+			err := serial.Set()
 			if err != nil {
 				return nil, err
+			}
+
+			resolution, err := serial.GetResolution()
+			if err != nil {
+				return nil, err
+			}
+
+			var resulitionInt int
+
+			switch resolution {
+			case "MP4":
+				resulitionInt = 0
+			case "1080p":
+				resulitionInt = 1
+			case "SD":
+				resulitionInt = 2
 			}
 
 			serialsToDownload = append(
 				serialsToDownload,
 				SerialToDownload{
-					Link:     serial.Resolutions[0].Link, // check resolution !!!!
+					Link:     serial.Resolutions[resulitionInt].Link,
 					FileName: serial.Serial.Name + " " + serial.SeasonData + ".torrent",
 				},
 			)

@@ -8,5 +8,6 @@ type Serial struct {
 
 type SerialDB struct {
 	Serial
-	ID uint
+	Resolution string
+	ID         uint
 }

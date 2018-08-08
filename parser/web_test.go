@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	// "../db"
-	"github.com/likipiki/goSerialLoader/db"
+	"../db"
+	// "github.com/likipiki/goSerialLoader/db"
 )
 
 const (
@@ -229,10 +229,10 @@ func TestParse(t *testing.T) {
 
 	serials, err := Parse(SAMPLE_TEXT)
 	if err != nil {
-		t.Fatal("parse not completed")
+		t.Fatal("parse not completed " + err.Error())
 	}
 	if !reflect.DeepEqual(serials, SAMPLE_RESULT) {
-		t.Error("expected", SAMPLE_RESULT, "got", serials)
+		t.Error("\nexpected\n", SAMPLE_RESULT, "\ngot\n", serials)
 	}
 
 }
